@@ -1,6 +1,10 @@
 #!/usr/bin/env python3.11.2
 import sys
 
+from colorama import Fore
+
+from Server import Server
+
 
 class Main:
     """
@@ -15,16 +19,25 @@ class Main:
 
     def __init__(self) -> None:
         self.argv = sys.argv[1:]
-        if sys.argv is None:
-            pass
+        if len(self.argv) < 2:
+            print(
+                '\n'.join(f'{Fore.LIGHTYELLOW_EX}{argument_name}{Fore.LIGHTGREEN_EX} - {Fore.LIGHTCYAN_EX}{description}'
+                          for argument_name, description in self.dict_arguments.items())
+            )
+        else:
+            ip: str = str(self.argv[0])
+            port: int = int(self.argv[1])
 
-        self.command_name = self.argv[0]
-        self.arguments = sys.argv[2:]
+            self.start(ip, port)
 
-        print(self.arguments)
+    # Do not modify this unless you know what you are doing.
+    @staticmethod
+    def start(host_ip: str, host_port: int):
+        return Server(host_ip, host_port)
 
-    def specify_arguments(self):
-        pass
+    @property
+    def dict_arguments(self) -> dict:
+        return {"IP": "The IP to specify.", "PORT": "The port number to specify."}
 
 
 if __name__ == '__main__':

