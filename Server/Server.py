@@ -26,7 +26,7 @@ class Server:
 
         self.client_socket, self.client_addr = self.socket.accept()
 
-        print(f'{Fore.LIGHTGREEN_EX}[+] Accepted connection from: {self.socket_addr[0]}:{self.socket_addr[1]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+] Accepted connection from {self.socket_addr[0]}:{self.socket_addr[1]}')
 
         self.working_directory = self.client_socket.recv(self.buffer_size).decode()
         self.hostname = self.client_socket.recv(self.buffer_size).decode()
@@ -37,7 +37,8 @@ class Server:
 
     def start_console(self) -> None:
         while True:
-            command_input = input(f'{self.username}@{self.hostname}:{self.working_directory}# ')
+            command_input = input(f'{Fore.RED}{self.username}{Fore.RESET}@{Fore.RED}{self.hostname}\n'
+                                  f'    {self.system_type}@({self.working_directory})~/ ')
             if not command_input:
                 continue
 
