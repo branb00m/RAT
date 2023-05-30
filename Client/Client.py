@@ -51,14 +51,21 @@ class Client:
 
         while True:
             command = self.socket.recv(self.buffer_size).decode()
-            if command.lower() in self.get_commands:
-                output = self.execute_command(command)
+            command_data = command.split()
+
+            command_arguments: list = command_data[1:]
+            command_name: str = command_data[0]
+
+            print(command_arguments)
+
+            if command_name.lower() in self.get_commands:
+                output = self.execute_command(command_name, command_arguments)
                 self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
             else:
-                output = subprocess.getoutput(command)
+                output = f'{Fore.LIGHTRED_EX}{command_name} is not found!'
                 self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
 
-    def execute_command(self, module_name: str) -> bytes:
+    def execute_command(self, module_name: str, args: list = None) -> str:
         stdout = StringIO()
         module_name = module_name.capitalize()
 
@@ -68,18 +75,16 @@ class Client:
                     f'{self.module_folder_name}.{module_name}',
                     fromlist=[module_name]),
                     module_name
-                )()
+                )(args)
 
-                stdout = stdout.getvalue().encode()
+                stdout = stdout.getvalue()
                 return stdout
             except Exception as exception:
                 match type(exception).__name__:
                     case 'ModuleNotFoundError':
-                        return bytes('%s does not exist' % module_name,
-                                     encoding='utf-8')
+                        return f'{module_name} does not exist'
                     case _:
-                        return bytes(str(exception),
-                                     encoding='utf-8')
+                        return f'{exception}'
 
     @property
     def get_commands(self):

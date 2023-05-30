@@ -35,7 +35,7 @@ class Server:
     def start_console(self) -> None:
         while True:
             command_input = input(f'{Fore.RED}{self.username}{Fore.RESET}@{Fore.RED}{self.hostname}\n'
-                                  f'    {self.system_type}@({self.working_directory})~/ ')
+                                  f'⇘⇒⇒⇒ {self.system_type}_SYSTEM@({self.working_directory}) /~ ')
             if not command_input:
                 continue
 
