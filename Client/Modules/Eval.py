@@ -3,7 +3,7 @@ class Eval:
     Evaluation. Allows you to execute custom Python code on command.
     You may import packages too (They have to be Python installed.)
     """
-    def __init__(self, args: list[str]):
+    def __init__(self, args: list):
         print('Started')
         self.args = args
         self.to_execute: str = '\n'.join(self.args)

