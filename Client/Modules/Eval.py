@@ -4,7 +4,6 @@ class Eval:
     You may import packages too (They have to be Python installed.)
     """
     def __init__(self, args: list):
-        print('Started')
         self.args = args
         self.to_execute: str = '\n'.join(self.args)
 

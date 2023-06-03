@@ -18,7 +18,7 @@ class Help:
         for file in sorted(os.listdir(self.modules_path)):
             file: str = file.lower()
 
-            if file not in self.filtered_modules and file.endswith('.py'):
+            if not (not file.endswith('.py') or not (file not in self.filtered_modules)):
                 module_name = file[:-3].capitalize()
                 documentation = self.get_documentation(module_name)
 

